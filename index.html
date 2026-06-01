@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第49回 自治労宮城県本部スポーツ大会</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Barlow+Condensed:ital,wght@0,700;0,900;1,700;1,900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green:#1a5c38;--green-d:#0f3d24;--green-l:#2a7a4e;--green-pale:#e8f5ee;
+  --amber:#c8760a;--amber-pale:#fef3e2;
+  --red:#b83232;--red-pale:#fdeaea;
+  --blue:#1a4a7a;--blue-pale:#e8f0fa;
+  --g50:#f5f4f0;--g100:#eceae4;--g200:#d4d2ca;--g400:#9e9b93;--g600:#5c5a55;--g900:#1e1d1a;
+  --text:#1e1d1a;--muted:#6b6960;--r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--g50);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* ヘッダー */
+.header{background:var(--green);position:sticky;top:0;z-index:100;}
+.header-top{padding:16px 16px 12px;}
+.header-accent{height:4px;background:var(--green-d);}
+.header-sub{font-size:10px;font-weight:700;color:#7dcc9a;letter-spacing:.12em;margin-bottom:3px;text-transform:uppercase;}
+.header-title{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;font-style:italic;color:#fff;line-height:1.1;text-transform:uppercase;letter-spacing:.01em;}
+.header-meta{font-size:10px;color:rgba(255,255,255,.55);margin-top:6px;}
+
+/* タブ */
+.tabs{display:flex;background:#fff;border-bottom:3px solid var(--green);overflow-x:auto;}
+.tab-btn{flex:1;min-width:68px;padding:10px 4px;font-size:11px;font-weight:700;font-family:'Noto Sans JP',sans-serif;border:none;background:none;color:var(--g400);cursor:pointer;white-space:nowrap;letter-spacing:.02em;transition:all .15s;}
+.tab-btn.active{color:var(--green);background:var(--green-pale);}
+
+/* コンテンツ */
+.content{padding:12px;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* ローディング */
+.loading{text-align:center;padding:48px 16px;color:var(--muted);font-size:13px;}
+.loading-spinner{width:28px;height:28px;border:3px solid var(--g200);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{background:var(--red-pale);border-radius:var(--r);padding:16px;margin:12px 0;font-size:13px;color:var(--red);}
+.retry-btn{margin-top:10px;padding:6px 16px;font-size:13px;border:1px solid var(--red);background:#fff;color:var(--red);border-radius:var(--rs);cursor:pointer;}
+
+/* ラウンドラベル */
+.round-label{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;font-style:italic;letter-spacing:.08em;color:var(--green);text-transform:uppercase;padding:14px 2px 6px;border-left:4px solid var(--green);padding-left:8px;margin-bottom:2px;}
+.updated-at{font-size:11px;color:var(--muted);text-align:right;padding:4px 2px 6px;}
+
+/* 試合カード */
+.match-card{background:#fff;border-radius:var(--r);margin-bottom:8px;overflow:hidden;border:1px solid var(--g100);}
+.match-summary{padding:0;cursor:pointer;display:flex;align-items:stretch;-webkit-tap-highlight-color:transparent;}
+.match-summary:active .match-inner{background:var(--g50);}
+.status-bar{width:5px;flex-shrink:0;}
+.status-bar.done{background:var(--green);}
+.status-bar.live{background:var(--amber);animation:blink 1.2s infinite;}
+.status-bar.wait{background:var(--g200);}
+.status-bar.cold{background:var(--red);}
+.status-bar.tb{background:var(--blue);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.match-inner{flex:1;padding:10px 12px;display:flex;align-items:center;gap:10px;}
+.teams-col{flex:1;min-width:0;}
+.team-row{display:flex;align-items:center;justify-content:space-between;padding:2px 0;gap:6px;}
+.team-name{font-size:13px;color:var(--g600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;}
+.team-name.winner{font-weight:900;color:var(--text);}
+.team-score{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;font-style:italic;min-width:30px;text-align:right;color:var(--g200);line-height:1;}
+.team-score.winner{color:var(--green);}
+.match-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;}
+.status-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;letter-spacing:.04em;white-space:nowrap;text-transform:uppercase;}
+.badge-done{background:var(--green-pale);color:var(--green);}
+.badge-live{background:var(--amber-pale);color:var(--amber);}
+.badge-wait{background:var(--g100);color:var(--g400);}
+.badge-cold{background:var(--red-pale);color:var(--red);}
+.badge-tb{background:var(--blue-pale);color:var(--blue);}
+.chevron{font-size:11px;color:var(--g400);transition:transform .2s;}
+.match-card.open .chevron{transform:rotate(180deg);}
+
+/* スコアボード */
+.scoreboard{display:none;border-top:2px solid var(--green-pale);padding:10px 14px 12px;background:var(--g50);}
+.match-card.open .scoreboard{display:block;}
+.sb-venue{font-size:11px;color:var(--muted);margin-bottom:8px;}
+.sb-wrap{overflow-x:auto;}
+.sb-table{border-collapse:collapse;font-size:12px;min-width:100%;}
+.sb-table th{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;color:var(--muted);text-align:center;padding:3px 6px;border-bottom:2px solid var(--g200);min-width:26px;}
+.sb-table th.tb-col{color:var(--blue);}
+.sb-table th.team-col{text-align:left;min-width:96px;}
+.sb-table td{text-align:center;padding:5px 6px;color:var(--text);border-bottom:1px solid var(--g100);}
+.sb-table td.team-col{text-align:left;font-size:12px;}
+.sb-table td.team-col.winner{font-weight:900;}
+.sb-table tr:last-child td{border-bottom:none;}
+.sb-table td.empty{color:var(--g200);}
+.sb-table td.live-cell{background:var(--amber-pale);color:var(--amber);font-weight:700;border-radius:3px;}
+.sb-table td.total{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;font-style:italic;border-left:2px solid var(--g200);}
+.sb-table td.total.winner{color:var(--green);}
+
+/* バレーボール */
+.vb-block-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;font-style:italic;letter-spacing:.08em;color:var(--green);text-transform:uppercase;padding:14px 2px 6px;border-left:4px solid var(--green);padding-left:8px;margin-bottom:2px;}
+.vb-card{background:#fff;border-radius:var(--r);border:1px solid var(--g100);overflow:hidden;margin-bottom:8px;}
+.vb-table{width:100%;border-collapse:collapse;font-size:13px;}
+.vb-table th{font-size:10px;font-weight:700;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--green-pale);text-align:center;letter-spacing:.05em;text-transform:uppercase;}
+.vb-table th.name-col{text-align:left;}
+.vb-table td{padding:9px 10px;border-bottom:1px solid var(--g50);text-align:center;color:var(--text);}
+.vb-table tr:last-child td{border-bottom:none;}
+.vb-table td.name-col{text-align:left;}
+.vb-table tr.rank1{border-left:4px solid var(--green);}
+.vb-table tr.rank1 td{background:var(--green-pale);}
+.vb-table tr.rank1 td.name-col{font-weight:900;color:var(--green);}
+.vb-final{background:#fff;border-radius:var(--r);border:1px solid var(--g100);overflow:hidden;margin-top:8px;}
+.vb-final-head{background:var(--green);padding:8px 14px;}
+.vb-final-head-text{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;font-style:italic;color:#fff;text-transform:uppercase;letter-spacing:.06em;}
+.vb-final-body{padding:12px 14px;}
+.vb-final-match{display:flex;align-items:center;gap:12px;}
+.vb-final-teams{flex:1;}
+.vb-final-team{display:flex;justify-content:space-between;align-items:center;padding:4px 0;}
+.vb-final-name{font-size:14px;color:var(--g600);}
+.vb-final-name.winner{font-weight:900;color:var(--text);}
+.vb-final-score{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;font-style:italic;color:var(--g200);}
+.vb-final-score.winner{color:var(--green);}
+.vb-set-detail{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6;}
+
+/* 開催要綱 */
+.youkou-section{background:#fff;border-radius:var(--r);border:1px solid var(--g100);margin-bottom:8px;overflow:hidden;}
+.youkou-header{padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent;border-left:4px solid var(--green);}
+.youkou-header:active{background:var(--g50);}
+.youkou-title{font-size:13px;font-weight:700;color:var(--green);}
+.youkou-body{display:none;padding:12px 14px 14px;font-size:13px;line-height:1.9;color:var(--text);border-top:1px solid var(--green-pale);}
+.youkou-section.open .youkou-body{display:block;}
+.youkou-section.open .chevron{transform:rotate(180deg);}
+.youkou-body h4{font-size:11px;font-weight:700;color:var(--muted);margin:12px 0 4px;letter-spacing:.06em;text-transform:uppercase;}
+.youkou-body p{margin-bottom:6px;}
+.youkou-body ul{padding-left:1.2em;margin-bottom:6px;}
+.youkou-body li{margin-bottom:3px;}
+.rule-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0;}
+.rule-table th{background:var(--green-pale);color:var(--green);font-weight:700;padding:5px 8px;border:1px solid var(--g200);text-align:left;}
+.rule-table td{padding:5px 8px;border:1px solid var(--g200);vertical-align:top;}
+.rule-table tr:nth-child(even) td{background:var(--g50);}
+
+/* 歴代記録 */
+.history-search{margin-bottom:10px;}
+.history-search input{width:100%;padding:9px 12px;border:2px solid var(--g200);border-radius:var(--rs);font-size:13px;font-family:'Noto Sans JP',sans-serif;background:#fff;}
+.history-search input:focus{outline:none;border-color:var(--green);}
+.history-card{background:#fff;border-radius:var(--r);border:1px solid var(--g100);margin-bottom:8px;overflow:hidden;}
+.history-header{padding:10px 12px;display:flex;align-items:center;gap:10px;border-left:4px solid var(--green);}
+.history-kai{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;font-style:italic;color:var(--green);min-width:50px;}
+.history-year{font-size:11px;color:var(--muted);}
+.history-canceled{font-size:11px;color:var(--red);padding:2px 8px;background:var(--red-pale);border-radius:20px;}
+.history-body{padding:0 12px 10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.history-sport{background:var(--g50);border-radius:var(--rs);padding:7px 9px;}
+.history-sport-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.05em;margin-bottom:3px;text-transform:uppercase;}
+.history-winner{font-size:13px;font-weight:700;color:var(--text);}
+.history-runner{font-size:11px;color:var(--muted);}
+.history-note{grid-column:1/-1;font-size:11px;color:var(--amber);background:var(--amber-pale);border-radius:var(--rs);padding:5px 9px;}
+
+.footer{margin-top:24px;padding:16px;text-align:center;font-size:11px;color:var(--g400);border-top:2px solid var(--green-pale);}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-sub">第49回</div>
+    <div class="header-title">自治労宮城県本部<br>スポーツ大会</div>
+    <div class="header-meta">主催：自治労宮城県本部　共催：こくみん共済coop自治労共済推進本部宮城県支部</div>
+  </div>
+  <div class="header-accent"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('baseball',this)">⚾ 軟式野球</button>
+  <button class="tab-btn" onclick="switchTab('volleyball',this)">🏐 バレーボール</button>
+  <button class="tab-btn" onclick="switchTab('bracket',this)">🗓️ 組み合わせ</button>
+  <button class="tab-btn" onclick="switchTab('youkou',this)">📋 開催要綱</button>
+  <button class="tab-btn" onclick="switchTab('history',this)">🏆 歴代記録</button>
+</div>
+
+<div class="content">
+
+  <div id="baseball" class="section active">
+    <div id="baseball-content"><div class="loading"><div class="loading-spinner"></div>データを読み込んでいます...</div></div>
+  </div>
+
+  <div id="volleyball" class="section">
+    <div id="volleyball-content"><div class="loading"><div class="loading-spinner"></div>データを読み込んでいます...</div></div>
+  </div>
+
+  <div id="bracket" class="section">
+    <div id="bracket-content"><div class="loading"><div class="loading-spinner"></div>データを読み込んでいます...</div></div>
+  </div>
+
+  <div id="youkou" class="section">
+    <div style="padding:4px 2px 8px;font-size:11px;color:var(--muted);text-align:right;">第49回自治労宮城県本部スポーツ大会</div>
+
+    <div class="youkou-section open">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">1. 大会の基調</span><span class="chevron">▼</span></div>
+      <div class="youkou-body"><p>当局の労務政策の一環である官制スポーツ行事に依存せず、「組合の力で組合員のスポーツ大会」を実施することを通して、自治労組合員相互の連帯と友情を深め、組織の拡大と強化、運動の発展と自治労共済事業の輪を広げ、組合員の団結を強める。</p></div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">2. 主催・共催</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <h4>主催</h4><p>全日本自治団体労働組合宮城県本部（略称：自治労宮城県本部）</p>
+        <h4>共催</h4><p>こくみん共済coop自治労共済推進本部宮城県支部（略称：自治労共済宮城県支部）</p>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">3. 大会名称・競技種目</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <h4>名称</h4><p>第49回自治労宮城県本部スポーツ大会</p>
+        <h4>種目</h4><p>男子　軟式野球<br>女子　バレーボール（9人制）</p>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">4. 日程・会場</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <h4>軟式野球の部</h4>
+        <table class="rule-table">
+          <tr><th>日程</th><th>会場</th></tr>
+          <tr><td>6月6日（土）1日目</td><td>矢本運動公園野球場・大郷野球場</td></tr>
+          <tr><td>6月13日（土）2日目</td><td>矢本運動公園野球場</td></tr>
+          <tr><td>6月20日（土）準決勝・決勝</td><td>鹿島台中央野球場</td></tr>
+          <tr><td>予備日① 6月13日（土）</td><td>奥松島運動公園野球場</td></tr>
+          <tr><td>予備日② 6月14日（日）</td><td>奥松島運動公園野球場</td></tr>
+          <tr><td>予備日③ 6月27日（土）</td><td>鹿島台中央野球場</td></tr>
+        </table>
+        <h4>女子バレーボールの部</h4>
+        <table class="rule-table">
+          <tr><th>日程</th><th>会場</th></tr>
+          <tr><td>6月13日（土）</td><td>大郷町「フラップ大郷21」</td></tr>
+        </table>
+        <h4>開会式</h4>
+        <ul>
+          <li>野球：8:10受付 → 8:20開会</li>
+          <li>バレーボール：9:15受付 → 9:30開会</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">5. 参加資格</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <ul>
+          <li>出場選手は、原則として自治労組合員またはじちろう共済の加入者（管理職も可）とする。</li>
+          <li>東北地連大会への出場資格は、大会優勝チームとする。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">6. 競技規則（軟式野球）</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <h4>試合方式</h4>
+        <ul>
+          <li>出場チームによるトーナメント方式</li>
+          <li>試合は原則7回戦、5回終了時点で試合成立</li>
+          <li>試合時間は100分を限度とし、時間経過後は新しい回に入らず終了</li>
+          <li>ただし100分経過後も5回完了までは競技を行う</li>
+          <li>5回以降7点差が生じた時はコールドゲームを適用</li>
+        </ul>
+        <h4>タイブレーク方式</h4>
+        <p>7回終了または5回終了後100分経過しても同点の場合、継続打順で前回最終打者を一塁走者、その前の打者を二塁走者とし、0アウト一・二塁の状態で1イニングを行う。</p>
+        <h4>その他</h4>
+        <ul>
+          <li>シートノックは各チーム1日につき1回（初戦）、5分間。後攻チームから実施</li>
+          <li>使用球：軟式野球ボール M号（ケンコーボール）</li>
+          <li>打者・次打者・走者・ベースコーチはヘルメット着用</li>
+          <li>捕手はマスク・ヘルメット・プロテクター・レガーズ・ファウルカップ着用</li>
+          <li>ベンチ入り人数：23名まで（監督・コーチ・選手20名以内、単組代表者1名、マネージャー1名、スコアラー1名）</li>
+          <li>単組を越えた選手の補強制度はとらない</li>
+        </ul>
+        <h4>雨天時の対応</h4>
+        <ul>
+          <li>開催可否は試合当日の午前6時に判断（判断できない場合は午前7時に再確認）</li>
+          <li>中止の場合はLINEオープンチャットにて連絡</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">7. 競技規則（女子バレーボール）</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <h4>試合方式</h4>
+        <ul>
+          <li>6チーム参加：2ブロック（3チームずつ）リーグ戦 → 各ブロック1位で決勝</li>
+          <li>試合形式：21点3セットマッチ</li>
+          <li>選手は自治労組合員またはじちろう共済加入者（女性に限る）</li>
+        </ul>
+        <h4>順位決定方法</h4>
+        <ul><li>①勝利数　②セット率（獲得セット数÷総セット数）　③得失点率（総得点数÷総失点数）</li></ul>
+        <h4>試合日程</h4>
+        <table class="rule-table">
+          <tr><th>試合</th><th>開始時刻</th></tr>
+          <tr><td>第1試合</td><td>10:00</td></tr>
+          <tr><td>第2試合</td><td>11:00</td></tr>
+          <tr><td>第3試合</td><td>12:00</td></tr>
+          <tr><td>決　勝</td><td>14:00</td></tr>
+        </table>
+        <h4>その他</h4>
+        <ul>
+          <li>ネットの高さ：2m15cm、コート：18m×9m</li>
+          <li>試合球：公認5号（モルテンV5M5000）</li>
+          <li>補強選手制度：他単組から3名以内可（複数チーム登録不可）</li>
+          <li>ベンチからの写真撮影は禁止</li>
+          <li>選手登録は15名以内、ベンチ入り20名まで</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">8. 参加費</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <p>組合員数（2025年6月県本部登録人員）を基準に、軟式野球・女子バレーボールそれぞれ1チームあたり下記のとおり。</p>
+        <table class="rule-table">
+          <tr><th>組合員数</th><th>参加費</th></tr>
+          <tr><td>100名まで</td><td>22,000円</td></tr>
+          <tr><td>300名まで</td><td>30,000円</td></tr>
+          <tr><td>500名まで</td><td>38,000円</td></tr>
+          <tr><td>1,000名まで</td><td>46,000円</td></tr>
+          <tr><td>1,000名以上</td><td>54,000円</td></tr>
+        </table>
+        <p>※参加賞および県大会での昼食の提供は行わない。</p>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">9. 東北地連大会・全国大会</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <h4>第48回東北地連スポーツ大会</h4>
+        <table class="rule-table">
+          <tr><th>日程</th><th>内容</th></tr>
+          <tr><td>7月2日（木）</td><td>組み合わせ抽選会（Web）</td></tr>
+          <tr><td>7月9日（木）</td><td>事前会議・開会式（青森県労働福祉会館）</td></tr>
+          <tr><td>7月10日（金）・11日（土）</td><td>軟式野球（青森県営球場・青森市営球場）</td></tr>
+          <tr><td>7月10日（金）</td><td>女子バレーボール（マエダアリーナ）</td></tr>
+        </table>
+        <h4>第34回全日本自治体職員等野球選手権大会</h4>
+        <table class="rule-table">
+          <tr><th>日程</th><th>内容</th></tr>
+          <tr><td>9月12日（土）〜14日（月）</td><td>大阪府（大阪シティ信用金庫スタジアム 他）</td></tr>
+        </table>
+        <p>※今年は女子バレーボールの全国優勝大会はありません。</p>
+      </div>
+    </div>
+
+    <div class="youkou-section">
+      <div class="youkou-header" onclick="toggleYoukou(this)"><span class="youkou-title">10. その他注意事項</span><span class="chevron">▼</span></div>
+      <div class="youkou-body">
+        <ul>
+          <li>大会には必ず組合旗を持参すること</li>
+          <li>開会式に遅れた場合は棄権とみなすことがある</li>
+          <li>参加選手は各自の健康保険証を持参すること</li>
+          <li>宿泊を希望する場合は各単組で手配すること</li>
+          <li>貴重品・靴などの盗難に注意</li>
+          <li>各チームのゴミは各チームで持ち帰ること</li>
+          <li>県本部で全登録選手について「行事スポット共済」に加入（損害賠償保険付）</li>
+        </ul>
+        <h4>大会の賞</h4>
+        <ul>
+          <li>優勝チーム、準優勝チーム：賞状・トロフィー（盾）</li>
+          <li>最優秀選手賞・優秀選手賞 各1名：トロフィー（盾）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="history" class="section">
+    <div style="padding:4px 2px 10px;">
+      <div class="history-search">
+        <input type="text" id="history-search-input" placeholder="チーム名・年・回で検索..." oninput="filterHistory()">
+      </div>
+    </div>
+    <div id="history-list"></div>
+  </div>
+
+</div>
+
+<div class="footer">© 自治労宮城県本部</div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycby6cuFMuC0LR0tlMWgEU3CMgDgcK0dCjGVzc2a0fmMyjd5PmTUcLYynx91VhIcGBcGB/exec";
+const REFRESH_INTERVAL = 60000;
+let refreshTimer = null;
+
+const historyData = [
+  {year:2024,kai:47,canceled:false,baseball:{winner:"石巻市職労",runner:"大崎市職労",venue:"登米市",teams:"15.0"},volleyball:{winner:"大崎市職労",runner:"気仙沼市職労",teams:"6.0"},note:""},
+  {year:2023,kai:46,canceled:false,baseball:{winner:"角田市職労",runner:"大河原町職",venue:"蔵　　王　　町",teams:"14.0"},volleyball:{winner:"気仙沼市職労",runner:"角田市職労",teams:"6.0"},note:""},
+  {year:2022,kai:45,canceled:false,baseball:{winner:"角田市職労",runner:"石巻市職労",venue:"石巻市",teams:"16.0"},volleyball:{winner:"大崎市職労",runner:"気仙沼市職労",teams:"3.0"},note:""},
+  {year:2021,kai:null,canceled:true,note:"新型コロナウイルス感染症の\n拡大により中止"},
+  {year:2020,kai:null,canceled:true,note:"新型コロナウイルス感染症の\n拡大により中止"},
+  {year:2019,kai:44,canceled:false,baseball:{winner:"石巻市職労",runner:"登米市職",venue:"登米市",teams:"18.0"},volleyball:{winner:"気仙沼市職労",runner:"気仙沼市立病労",teams:"6.0"},note:""},
+  {year:2018,kai:43,canceled:false,baseball:{winner:"石巻市職労",runner:"仙台市職労",venue:"角田市",teams:"18.0"},volleyball:{winner:"名取市職労",runner:"気仙沼市職労",teams:"7.0"},note:""},
+  {year:2017,kai:42,canceled:false,baseball:{winner:"大崎市職労",runner:"石巻市職労",venue:"松島町",teams:"16.0"},volleyball:{winner:"気仙沼市職労",runner:"名取市職労",teams:"8.0"},note:""},
+  {year:2016,kai:41,canceled:false,baseball:{winner:"仙台市職労",runner:"白石市職",venue:"登米市",teams:"20.0"},volleyball:{winner:"気仙沼市職労",runner:"名取市職労",teams:"7.0"},note:""},
+  {year:2015,kai:40,canceled:false,baseball:{winner:"大崎市職労",runner:"白石市職",venue:"蔵王町",teams:"19.0"},volleyball:{winner:"名取市職労",runner:"村田町職",teams:"7.0"},note:""},
+  {year:2014,kai:39,canceled:false,baseball:{winner:"東松島市職",runner:"大郷町職",venue:"大郷町",teams:"19.0"},volleyball:{winner:"気仙沼市職労",runner:"名取市職労",teams:"6.0"},note:"東北大会を仙台で開催"},
+  {year:2013,kai:38,canceled:false,baseball:{winner:"仙台市職労",runner:"石巻市職労",venue:"栗原市",teams:"16.0"},volleyball:{winner:"名取市職労",runner:"白石市職",teams:"4.0"},note:""},
+  {year:2012,kai:37,canceled:false,baseball:{winner:"大崎市職労",runner:"角田市職労",venue:"角田市",teams:"15.0"},volleyball:{winner:"名取市職労",runner:"白石市職",teams:"3.0"},note:""},
+  {year:2011,kai:null,canceled:true,note:"県大会・地連大会東日本大震災で中止。バレー名取市職労全国大会へ出場"},
+  {year:2010,kai:36,canceled:false,baseball:{winner:"大崎市職労",runner:"白石市職",venue:"東松島市",teams:"18.0"},volleyball:{winner:"名取市職労",runner:"白石市職",teams:"5.0"},note:"東北大会で名取市職労準優勝"},
+  {year:2009,kai:35,canceled:false,baseball:{winner:"大崎市職労",runner:"仙台市職労",venue:"登米市",teams:"18.0"},volleyball:{winner:"名取市職労",runner:"気仙沼病労",teams:"7.0"},note:"東北大会で大崎市職労・第3位、名取市職労・準優勝"},
+  {year:2008,kai:34,canceled:false,baseball:{winner:"仙台市職労",runner:"石巻市職労",venue:"気仙沼・南三陸",teams:"20.0"},volleyball:{winner:"気仙沼病労",runner:"気仙沼市職労",teams:"7.0"},note:""},
+  {year:2007,kai:33,canceled:false,baseball:{winner:"仙台市職労",runner:"登米市職",venue:"角田市",teams:"20.0"},volleyball:{winner:"気仙沼病労",runner:"名取市職労",teams:"7.0"},note:"仙台市職労、名取市職労が東北大会で第3位"},
+  {year:2006,kai:32,canceled:false,baseball:{winner:"登米市職",runner:"石巻市職労",venue:"仙台",teams:"21.0"},volleyball:{winner:"気仙沼病労",runner:"名取市職労",teams:"8.0"},note:"登米市職、東北大会優勝し、全国大会出場。気仙沼病労、東北大会で準優勝"},
+  {year:2005,kai:31,canceled:false,baseball:{winner:"仙台市職労",runner:"東松島市職",venue:"三本木・南郷",teams:"27.0"},volleyball:{winner:"名取市職労",runner:"気仙沼市職労",teams:"6.0"},note:"仙台市職労、東北大会で準優勝"},
+  {year:2004,kai:30,canceled:false,baseball:{winner:"古川市職労",runner:"三本木町職",venue:"栗駒・金成",teams:"35.0"},volleyball:{winner:"名取市職労",runner:"小牛田町職",teams:"7.0"},note:""},
+  {year:2003,kai:29,canceled:false,baseball:{winner:"矢本町職",runner:"仙台市職労",venue:"気仙沼・歌津",teams:"41.0"},volleyball:{winner:"名取市職労",runner:"仙台市病労",teams:"9.0"},note:"矢本町職震災のため東北大会欠場"},
+  {year:2002,kai:28,canceled:false,baseball:{winner:"矢本町職",runner:"仙台市職労",venue:"名取・岩沼",teams:"42.0"},volleyball:{winner:"仙台市職労",runner:"名取市職労",teams:"11.0"},note:""},
+  {year:2001,kai:27,canceled:false,baseball:{winner:"矢本町職",runner:"仙台市職労",venue:"石巻",teams:"44.0"},volleyball:{winner:"名取市職労",runner:"小牛田町職",teams:"8.0"},note:"名取市職労全国大会出場"},
+  {year:2000,kai:26,canceled:false,baseball:{winner:"矢本町職",runner:"仙台市職労",venue:"鹿島台・南郷",teams:"42.0"},volleyball:{winner:"塩釜市職労",runner:"名取市職労",teams:"12.0"},note:""},
+  {year:1999,kai:25,canceled:false,baseball:{winner:"矢本町職",runner:"仙台市職労",venue:"迫",teams:"43.0"},volleyball:{winner:"仙台市職労",runner:"塩釜市職労",teams:"13.0"},note:""},
+  {year:1998,kai:24,canceled:false,baseball:{winner:"石巻市職労",runner:"古川市職労",venue:"歌津",teams:"40.0"},volleyball:{winner:"塩釜市職労",runner:"仙台市職労",teams:"14.0"},note:"石巻市職労全国大会出場（準決勝に進出）"},
+  {year:1997,kai:23,canceled:false,baseball:{winner:"仙台市職労",runner:"東和町職",venue:"岩沼",teams:"43.0"},volleyball:{winner:"仙台市職労",runner:"小牛田町職",teams:"16.0"},note:""},
+  {year:1996,kai:22,canceled:false,baseball:{winner:"仙台市職労",runner:"石巻市職労",venue:"松島・大郷",teams:"42.0"},volleyball:{winner:"塩釜市職労",runner:"仙台市職労",teams:"15.0"},note:""},
+  {year:1995,kai:21,canceled:false,baseball:{winner:"古川市職労",runner:"仙台市職労",venue:"南郷・小牛田",teams:"43.0"},volleyball:{winner:"仙台市職労",runner:"名取市職労",teams:"16.0"},note:""},
+  {year:1994,kai:20,canceled:false,baseball:{winner:"石巻市職労",runner:"古川市職労",venue:"気仙沼・歌津",teams:"46.0"},volleyball:{winner:"仙台市職労",runner:"小牛田町職",teams:"15.0"},note:""},
+  {year:1993,kai:19,canceled:false,baseball:{winner:"矢本町職",runner:"石巻市職労",venue:"迫・米山",teams:"45.0"},volleyball:{winner:"仙台市職労",runner:"塩釜市職労",teams:"13.0"},note:"石巻市職労全国大会出場"},
+  {year:1992,kai:18,canceled:false,baseball:{winner:"仙台市職労",runner:"気仙沼市職労",venue:"白石",teams:"43.0"},volleyball:{winner:"仙台市職労",runner:"塩釜市職労",teams:"13.0"},note:""},
+  {year:1991,kai:17,canceled:false,baseball:{winner:"矢本町職",runner:"仙台市職労",venue:"石巻・矢本",teams:"43.0"},volleyball:{winner:"塩釜市職労",runner:"仙台市職労",teams:"13.0"},note:"矢本町職全国大会出場"},
+  {year:1990,kai:16,canceled:false,baseball:{winner:"矢本町職",runner:"石巻市職労",venue:"古川・三本木",teams:""},volleyball:{winner:"仙台市職労",runner:"塩釜市職労",teams:"8.0"},note:""},
+  {year:1989,kai:15,canceled:false,baseball:{winner:"仙台市職労",runner:"三本木町職",venue:"栗駒・金成",teams:""},volleyball:{winner:"仙台市職労A",runner:"仙台市職労B",teams:"10.0"},note:""},
+  {year:1988,kai:14,canceled:false,baseball:{winner:"矢本町職",runner:"小牛田町職",venue:"気仙沼",teams:""},volleyball:{winner:"仙台市職労",runner:"本吉町職",teams:"7.0"},note:""},
+  {year:1987,kai:13,canceled:false,baseball:{winner:"歌津町職",runner:"小牛田町職",venue:"名取",teams:""},volleyball:{winner:"仙台市職労",runner:"泉市職労",teams:"9.0"},note:""},
+  {year:1986,kai:12,canceled:false,baseball:{winner:"仙台市職労",runner:"石巻市職労",venue:"石巻",teams:"39.0"},volleyball:{winner:"仙台市職労",runner:"気仙沼市職労",teams:"9.0"},note:""},
+  {year:1985,kai:11,canceled:false,baseball:{winner:"矢本町職",runner:"古川市職労",venue:"古川",teams:"37.0"},volleyball:{winner:"仙台市職労",runner:"大河原町職",teams:"10.0"},note:""},
+  {year:1984,kai:10,canceled:false,baseball:{winner:"名取市職労",runner:"本吉町職",venue:"迫",teams:"35.0"},volleyball:{winner:"仙台市職労",runner:"公立気仙沼病労",teams:"11.0"},note:""},
+  {year:1983,kai:9,canceled:false,baseball:{winner:"矢本町職",runner:"岩出山町職",venue:"富谷",teams:"37.0"},volleyball:{winner:"仙台市職労",runner:"泉市職労",teams:"7.0"},note:""},
+  {year:1982,kai:8,canceled:false,baseball:{winner:"石巻市職労",runner:"小牛田町職",venue:"富谷",teams:"34.0"},volleyball:{winner:"仙台市職労",runner:"本吉町職",teams:"10.0"},note:""},
+  {year:1981,kai:7,canceled:false,baseball:{winner:"泉市職労",runner:"仙台市職労",venue:"富谷",teams:"34.0"},volleyball:{winner:"名取市職労",runner:"仙台市職労",teams:"14.0"},note:"名取市職労全国大会出場"},
+  {year:1980,kai:6,canceled:false,baseball:{winner:"仙台市職労",runner:"古川市職労",venue:"富谷",teams:"37.0"},volleyball:{winner:"名取市職労",runner:"泉市職労",teams:"14.0"},note:"「全日本自治体職員スポーツ大会」となる"},
+  {year:1979,kai:5,canceled:false,baseball:{winner:"若柳町職労",runner:"矢本町職",venue:"富谷",teams:"34.0"},volleyball:{winner:"小牛田町職",runner:"本吉町職",teams:"12.0"},note:"自治体労働者スポーツ大会（全国大会始まる）」"},
+  {year:1978,kai:4,canceled:false,baseball:{winner:"石巻市職労",runner:"名取市職労",venue:"石巻",teams:"36.0"},volleyball:{winner:"",runner:"",teams:""},note:"スキー教室も開催"},
+  {year:1977,kai:3,canceled:false,baseball:{winner:"若柳町職",runner:"",venue:"",teams:"36.0"},volleyball:{winner:"",runner:"",teams:""},note:""},
+  {year:1976,kai:2,canceled:false,baseball:{winner:"矢本町職",runner:"名取市職労",venue:"仙台",teams:"18.0"},volleyball:{winner:"",runner:"",teams:""},note:""},
+  {year:1975,kai:1,canceled:false,baseball:{winner:"石巻市職労",runner:"唐桑町職労",venue:"仙台",teams:"29.0"},volleyball:{winner:"",runner:"",teams:""},note:"「宮城県自治体労働者野球大会（未加盟含む）」"}
+];
+
+
+const SLABEL = {done:"終了",live:"進行中",wait:"開始待ち",cold:"終了（コールド）",tb:"終了（TB）"};
+const SCLASS = {done:"badge-done",live:"badge-live",wait:"badge-wait",cold:"badge-cold",tb:"badge-tb"};
+const SBAR   = {done:"done",live:"live",wait:"wait",cold:"cold",tb:"tb"};
+
+async function fetchData() {
+  try {
+    const res = await fetch(GAS_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    renderBaseball(data.baseball, data.updatedAt);
+    renderVolleyball(data.volleyball, data.updatedAt);
+    renderBracket(data.baseball);
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(fetchData, REFRESH_INTERVAL);
+  } catch(err) {
+    const e = `<div class="error-box">データの取得に失敗しました。<br><small>${err.message}</small><br><button class="retry-btn" onclick="fetchData()">再読み込み</button></div>`;
+    document.getElementById('baseball-content').innerHTML = e;
+    document.getElementById('volleyball-content').innerHTML = e;
+    document.getElementById('bracket-content').innerHTML = e;
+  }
+}
+
+function renderBaseball(data, updatedAt) {
+  let html = `<div class="updated-at">更新：${updatedAt}</div>`;
+  data.rounds.forEach(round => {
+    html += `<div class="round-label">${round.label}</div>`;
+    round.matches.forEach((m, mi) => {
+      const isTB = m.status === "tb";
+      const innings = Math.max(m.score[0].length, m.score[1].length);
+      const totals = m.score.map(t => t.reduce((s,v) => s+(v!==null?v:0), 0));
+      const id = `m-${round.label.replace(/\s/g,'')}-${mi}`;
+      let stText = SLABEL[m.status]||m.status;
+      if (m.status==="live"&&m.liveInning) stText=`${m.liveInning}回${m.liveSide==="top"?"表":"裏"}`;
+      html += `
+      <div class="match-card" id="${id}">
+        <div class="match-summary" onclick="toggleMatch('${id}')">
+          <div class="status-bar ${SBAR[m.status]||'wait'}"></div>
+          <div class="match-inner">
+            <div class="teams-col">
+              <div class="team-row">
+                <span class="team-name${m.winner===0?' winner':''}">${m.teams[0]}</span>
+                <span class="team-score${m.winner===0?' winner':''}">${m.status==='wait'?'—':totals[0]}</span>
+              </div>
+              <div class="team-row">
+                <span class="team-name${m.winner===1?' winner':''}">${m.teams[1]}</span>
+                <span class="team-score${m.winner===1?' winner':''}">${m.status==='wait'?'—':totals[1]}</span>
+              </div>
+            </div>
+            <div class="match-right">
+              <span class="status-badge ${SCLASS[m.status]||'badge-wait'}">${stText}</span>
+              <span class="chevron">▼</span>
+            </div>
+          </div>
+        </div>
+        <div class="scoreboard">
+          <div class="sb-venue">📍 ${m.venue}</div>
+          <div class="sb-wrap">
+            <table class="sb-table">
+              <thead><tr>
+                <th class="team-col"></th>
+                ${Array.from({length:isTB?innings-1:innings},(_,i)=>`<th>${i+1}</th>`).join('')}
+                ${isTB?`<th class="tb-col">TB</th>`:''}
+                <th style="border-left:2px solid var(--g200)">計</th>
+              </tr></thead>
+              <tbody>${m.score.map((ts,ti)=>{
+                const isW=m.winner===ti;
+                return `<tr>
+                  <td class="team-col${isW?' winner':''}">${m.teams[ti]}</td>
+                  ${ts.map((v,idx)=>{
+                    const isL=m.status==="live"&&m.liveInning&&idx===m.liveInning-1&&((m.liveSide==="bot"&&ti===1)||(m.liveSide==="top"&&ti===0));
+                    if(v===null) return `<td class="${isL?'live-cell':'empty'}">—</td>`;
+                    return `<td${isL?' class="live-cell"':''}>${v}</td>`;
+                  }).join('')}
+                  <td class="total${isW?' winner':''}">${m.status==='wait'?'—':totals[ti]}</td>
+                </tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('baseball-content').innerHTML = html;
+}
+
+function renderVolleyball(data, updatedAt) {
+  let html = `<div class="updated-at">更新：${updatedAt}</div>`;
+  ['A','B'].forEach(block => {
+    const bd = data[`block${block}`];
+    const stats = bd.teams.map(()=>({w:0,l:0,sw:0,sl:0}));
+    bd.matches.forEach(m => {
+      if(m.winner===null) return;
+      const wIdx=m.pair[m.winner],lIdx=m.pair[1-m.winner];
+      stats[wIdx].w++;stats[lIdx].l++;
+      m.sets.forEach(s=>{if(s[0]>s[1]){stats[m.pair[0]].sw++;stats[m.pair[1]].sl++;}else{stats[m.pair[1]].sw++;stats[m.pair[0]].sl++;}});
+    });
+    // セット詳細を各チームごとに集計（自チームの得点を前に）
+    const setDetails = bd.teams.map(()=>[]);
+    bd.matches.forEach(m=>{
+      if(!m.sets||m.sets.length===0) return;
+      const t0=m.pair[0], t1=m.pair[1];
+      // t0視点：s[0]-s[1]
+      setDetails[t0].push(m.sets.map(s=>`${s[0]}-${s[1]}`).join(' / '));
+      // t1視点：s[1]-s[0]（自分の得点を前に）
+      setDetails[t1].push(m.sets.map(s=>`${s[1]}-${s[0]}`).join(' / '));
+    });
+
+    const ranked=bd.teams.map((name,i)=>{
+      const st=stats[i],total=st.sw+st.sl;
+      return{...st,name,rate:total>0?(st.sw/total).toFixed(3):'—',sets:setDetails[i]};
+    }).sort((a,b)=>b.w!==a.w?b.w-a.w:(parseFloat(b.rate)||0)-(parseFloat(a.rate)||0));
+    html+=`
+    <div class="vb-block-title">予選リーグ — ${block}ブロック</div>
+    <div class="vb-card">
+      <table class="vb-table">
+        <thead><tr><th class="name-col">チーム</th><th>勝</th><th>敗</th><th>セット率</th><th class="name-col" style="font-size:9px;">セット詳細</th></tr></thead>
+        <tbody>${ranked.map((r,ri)=>`<tr class="${ri===0?'rank1':''}"><td class="name-col">${r.name}</td><td>${r.w}</td><td>${r.l}</td><td>${r.rate}</td><td class="name-col" style="font-size:11px;color:var(--muted);">${r.sets.length>0?r.sets.join('<br>'):'—'}</td></tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  });
+  const f=data.final;
+  const fT=[f.sets.filter(s=>s[0]>s[1]).length,f.sets.filter(s=>s[1]>s[0]).length];
+  html+=`
+  <div class="vb-block-title">決勝</div>
+  <div class="vb-final">
+    <div class="vb-final-head"><span class="vb-final-head-text">Final — 14:00〜</span></div>
+    <div class="vb-final-body">
+      <div class="vb-final-match">
+        <div class="vb-final-teams">
+          <div class="vb-final-team"><span class="vb-final-name${f.winner===0?' winner':''}">${f.teams[0]}</span><span class="vb-final-score${f.winner===0?' winner':''}">${f.sets.length>0?fT[0]:'—'}</span></div>
+          <div class="vb-final-team"><span class="vb-final-name${f.winner===1?' winner':''}">${f.teams[1]}</span><span class="vb-final-score${f.winner===1?' winner':''}">${f.sets.length>0?fT[1]:'—'}</span></div>
+        </div>
+        <span class="status-badge ${SCLASS[f.status]||'badge-wait'}">${SLABEL[f.status]||f.status}</span>
+      </div>
+      ${f.sets.length>0?`<div class="vb-set-detail">${f.sets.map((s,i)=>`第${i+1}セット ${s[0]}–${s[1]}`).join('　')}</div>`:''}
+    </div>
+  </div>`;
+  document.getElementById('volleyball-content').innerHTML=html;
+}
+
+function toggleYoukou(header){header.closest('.youkou-section').classList.toggle('open');}
+function toggleMatch(id){document.getElementById(id).classList.toggle('open');}
+function switchTab(tab,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+
+// ============================================================
+// トーナメント表描画（外部AI製SVGベース）
+// ============================================================
+function renderBracket(data) {
+  const container = document.getElementById('bracket-content');
+
+  // GASデータからR1/R2/SF/FIを組み立て
+  const r1raw = (data.rounds[0]||{matches:[]}).matches.slice(0,8);
+  const r2raw = (data.rounds[1]||{matches:[]}).matches.slice(0,4);
+  const sfraw = (data.rounds[2]||{matches:[]}).matches.slice(0,2);
+  const firaw = ((data.rounds[3]||{matches:[]}).matches||[])[0]||null;
+
+  function toMatch(m) {
+    if (!m || m.winner === null) return null;
+    const s0 = m.score[0].reduce((a,v)=>a+(v||0),0);
+    const s1 = m.score[1].reduce((a,v)=>a+(v||0),0);
+    return { w: m.winner, s: [s0, s1] };
+  }
+
+  const R1 = r1raw.map(m => toMatch(m) || { w: null, s: null });
+  const R2 = r2raw.map(m => toMatch(m));
+  const SF = sfraw.map(m => toMatch(m));
+  const FI = firaw ? toMatch(firaw) : null;
+
+  // チーム名
+  const TEAMS = r1raw.length >= 8
+    ? r1raw.flatMap(m => m.teams)
+    : [
+      "塩釜市職労（市立病院）","栗原市職労",
+      "石巻市職労","角田市職労",
+      "名取市職労","仙台市働く連",
+      "美里町職","南三陸町職",
+      "大河原町職","大崎市職労",
+      "白石市職","東松島市職",
+      "塩釜市職労","大郷町職",
+      "気仙沼市職労","登米市職"
+    ];
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function cel(tag, attrs, text) {
+    const e = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k, String(v)));
+    if (text !== undefined && text !== '') e.textContent = text;
+    return e;
+  }
+
+  const LAYOUT = {
+    width: 928, height: 620, left: 44, teamGap: 56,
+    leafY: 468, teamNameY: 488, championStemY: 66,
+    rounds: [
+      { key: 'R1', y: 398, date: '6/6' },
+      { key: 'R2', y: 302, date: '6/13' },
+      { key: 'SF', y: 206, date: '6/20' },
+      { key: 'FI', y: 110, date: '6/20' },
+    ]
+  };
+
+  function getRoundData(key) {
+    if (key==='R1') return R1;
+    if (key==='R2') return R2;
+    if (key==='SF') return SF;
+    return [FI];
+  }
+
+  function normalizeMatch(m) {
+    if (!m || typeof m !== 'object') return { w: null, s: null };
+    return { w: (m.w===0||m.w===1) ? m.w : null, s: Array.isArray(m.s) ? m.s : null };
+  }
+
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 928 620');
+  svg.setAttribute('width', '928');
+  svg.setAttribute('height', '620');
+  svg.style.display = 'block';
+
+  // スタイル
+  const style = document.createElementNS(SVG_NS, 'style');
+  style.textContent = `
+    svg .branch { fill: none; stroke-linejoin: miter; stroke-linecap: square; }
+    svg .branch--pending { stroke: #c8c6c0; stroke-width: 1.2; }
+    svg .branch--win { stroke: #1a5c38; stroke-width: 3; }
+    svg .svg-team-name { font-size: 10px; fill: #1e1d1a; writing-mode: vertical-rl; text-orientation: mixed; dominant-baseline: hanging; text-anchor: start; letter-spacing: 0.02em; }
+    svg .date-text { font-size: 8px; fill: #77746e; text-anchor: middle; dominant-baseline: middle; }
+    svg .score-text { font-size: 9px; fill: #1e1d1a; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
+    svg .score-text--win { fill: #1a5c38; }
+  `;
+  svg.appendChild(style);
+
+  const initialNodes = TEAMS.map((name, i) => ({
+    name, x: LAYOUT.left + i * LAYOUT.teamGap, y: LAYOUT.leafY
+  }));
+
+  let currentNodes = initialNodes;
+  const pendingBranches = [], winBranches = [], matchMetas = [];
+
+  LAYOUT.rounds.forEach(round => {
+    const roundData = getRoundData(round.key);
+    const nextNodes = [];
+    for (let i=0; i<currentNodes.length/2; i++) {
+      const lNode = currentNodes[i*2], rNode = currentNodes[i*2+1];
+      const match = normalizeMatch(roundData[i]);
+      const hasWinner = match.w === 0 || match.w === 1;
+      const parentNode = {
+        name: hasWinner ? (match.w===0 ? lNode.name : rNode.name) : null,
+        x: (lNode.x + rNode.x) / 2, y: round.y
+      };
+      const lBranch = { from: lNode, to: parentNode, win: hasWinner && match.w===0 };
+      const rBranch = { from: rNode, to: parentNode, win: hasWinner && match.w===1 };
+      (lBranch.win ? winBranches : pendingBranches).push(lBranch);
+      (rBranch.win ? winBranches : pendingBranches).push(rBranch);
+      matchMetas.push({ lNode, rNode, parentNode, match, date: round.date });
+      nextNodes.push(parentNode);
+    }
+    currentNodes = nextNodes;
+  });
+
+  const finalNode = currentNodes[0];
+  const championName = finalNode && finalNode.name ? finalNode.name : '';
+  const championStem = { from: { x: finalNode.x, y: finalNode.y }, to: { x: finalNode.x, y: LAYOUT.championStemY }, win: Boolean(championName) };
+  (championStem.win ? winBranches : pendingBranches).push(championStem);
+
+  function drawBranch(b) {
+    svg.appendChild(cel('path', {
+      class: b.win ? 'branch branch--win' : 'branch branch--pending',
+      d: `M ${b.from.x} ${b.from.y} V ${b.to.y} H ${b.to.x}`
+    }));
+  }
+
+  pendingBranches.forEach(drawBranch);
+  winBranches.forEach(drawBranch);
+
+  matchMetas.forEach(meta => {
+    svg.appendChild(cel('text', { class:'date-text', x: meta.parentNode.x, y: meta.parentNode.y - 10 }, meta.date));
+    if (meta.match.s) {
+      const lx = (meta.lNode.x + meta.parentNode.x)/2;
+      const rx = (meta.rNode.x + meta.parentNode.x)/2;
+      const sy = meta.parentNode.y + 12;
+      svg.appendChild(cel('text', { class: meta.match.w===0 ? 'score-text score-text--win':'score-text', x:lx, y:sy }, String(meta.match.s[0])));
+      svg.appendChild(cel('text', { class: meta.match.w===1 ? 'score-text score-text--win':'score-text', x:rx, y:sy }, String(meta.match.s[1])));
+    }
+  });
+
+  initialNodes.forEach(t => {
+    svg.appendChild(cel('text', { class:'svg-team-name', x: t.x-5, y: LAYOUT.teamNameY }, t.name));
+  });
+
+  // ラッパー構築
+  container.innerHTML = '';
+
+  const champion = document.createElement('div');
+  champion.style.cssText = 'text-align:center;padding:8px 0 4px;';
+  champion.innerHTML = `<div style="font-size:11px;font-weight:700;color:#1a5c38;letter-spacing:.12em;">優勝</div><div style="font-size:17px;font-weight:700;color:${championName?'#1e1d1a':'#8a8882'};">${championName||'未定'}</div>`;
+  container.appendChild(champion);
+
+  const scroll = document.createElement('div');
+  scroll.style.cssText = 'width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;';
+  const inner = document.createElement('div');
+  inner.style.cssText = 'width:928px;';
+  inner.appendChild(svg);
+  scroll.appendChild(inner);
+  container.appendChild(scroll);
+
+  const hint = document.createElement('div');
+  hint.style.cssText = 'font-size:11px;color:#9e9b93;text-align:center;padding:6px 0 2px;';
+  hint.textContent = '← 横スクロールで全体を確認';
+  container.appendChild(hint);
+}
+
+function renderHistory(data){
+  const c=document.getElementById('history-list');
+  if(!data.length){c.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px;">該当する記録がありません</div>';return;}
+  c.innerHTML=data.map(d=>{
+    if(d.canceled){
+      return `<div class="history-card"><div class="history-header"><span class="history-kai">${d.year}</span><span class="history-canceled">中止</span><span style="font-size:11px;color:var(--muted);margin-left:6px;">${d.note||''}</span></div></div>`;
+    }
+    const b=d.baseball,v=d.volleyball;
+    const bT=b&&b.teams?`<span style="font-size:10px;color:var(--muted)">${Math.round(b.teams)}チーム</span>`:'';
+    const vT=v&&v.teams?`<span style="font-size:10px;color:var(--muted)">${Math.round(v.teams)}チーム</span>`:'';
+    const noteHtml=d.note?`<div class="history-note">📌 ${d.note}</div>`:'';
+    return `<div class="history-card">
+      <div class="history-header">
+        <span class="history-kai">第${d.kai}回</span>
+        <div><div style="font-size:12px;font-weight:700;">${d.year}年</div>${b&&b.venue?`<div class="history-year">📍 ${b.venue}</div>`:''}</div>
+      </div>
+      <div class="history-body">
+        <div class="history-sport">
+          <div class="history-sport-label">⚾ 野球 ${bT}</div>
+          ${b&&b.winner?`<div class="history-winner">🥇 ${b.winner}</div><div class="history-runner">🥈 ${b.runner||'—'}</div>`:'<div class="history-runner">記録なし</div>'}
+        </div>
+        <div class="history-sport">
+          <div class="history-sport-label">🏐 バレー ${vT}</div>
+          ${v&&v.winner?`<div class="history-winner">🥇 ${v.winner}</div><div class="history-runner">🥈 ${v.runner||'—'}</div>`:'<div class="history-runner">記録なし</div>'}
+        </div>
+        ${noteHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterHistory(){
+  const q=document.getElementById('history-search-input').value.trim();
+  if(!q){renderHistory(historyData);return;}
+  renderHistory(historyData.filter(d=>JSON.stringify(d).includes(q)));
+}
+
+fetchData();
+renderHistory(historyData);
+</script>
+</body>
+</html>
